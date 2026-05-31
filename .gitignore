@@ -1,0 +1,39 @@
+# Environment variables - never commit these
+.env
+.env.local
+.env.production
+
+# Built binaries
+*.exe
+*.exe~
+fantasy-league-api
+
+# Go specific
+tmp/
+vendor/
+
+# Database
+*.sql.bak
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test output
+*.out
+coverage.html
+
+# Swagger generated files (auto-generated, don't need versioning)
+docs/docs.go
+docs/swagger.json
+docs/swagger.yaml
+
+# Air live reload config (you'll use this later)
+.air.toml
+tmp/
