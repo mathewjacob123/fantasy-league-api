@@ -26,6 +26,15 @@ func main() {
 	// handlers
 	authHandler := handlers.NewAuthHandler(authService)
 
+	// repositories
+leagueRepo := repository.NewLeagueRepository(database)
+
+// services
+leagueService := services.NewLeagueService(leagueRepo)
+
+// handlers
+leagueHandler := handlers.NewLeagueHandler(leagueService)
+
 	r := gin.Default()
 
 	r.GET("/health", func(c *gin.Context) {
@@ -50,6 +59,10 @@ func main() {
 				"username": c.MustGet("username"),
 			})
 		})
+		api.POST("/leagues", leagueHandler.CreateLeague)
+	api.GET("/leagues", leagueHandler.GetLeagues)
+	api.GET("/leagues/:id", leagueHandler.GetLeagueByID)
+	api.POST("/leagues/:id/join", leagueHandler.JoinLeague)
 	}
 
 	log.Println("Server running on port", cfg.Port)
