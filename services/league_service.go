@@ -58,6 +58,10 @@ func (s *LeagueService) JoinLeague(leagueID, userID int) error {
 		return errors.New("league not found")
 	}
 
+	if league.OwnerID == userID {
+        return errors.New("you are the owner of this league")
+    }
+
 	if league.Status != "draft" {
 		return errors.New("league is no longer accepting members")
 	}

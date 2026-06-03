@@ -81,11 +81,16 @@ func (h *LeagueHandler) JoinLeague(c *gin.Context) {
 
 	userID := int(c.GetFloat64("user_id"))
 
-	err = h.leagueService.JoinLeague(id, userID)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "joined league successfully"})
+err = h.leagueService.JoinLeague(id, userID)
+if err != nil {
+    // check what kind of error it is
+    if err.Error() == "league is no longer accepting members" || 
+       err.Error() == "already a member of this league" ||
+       err.Error() == "league is full" {
+        c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
+        return
+    }
+    c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+    return
+}
 }
