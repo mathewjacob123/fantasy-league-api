@@ -17,23 +17,32 @@ func main() {
 	database := db.Connect(cfg)
 	defer database.Close()
 
-	// repositories
-	userRepo := repository.NewUserRepository(database)
+	
+userRepo := repository.NewUserRepository(database)
 
-	// services
-	authService := services.NewAuthService(userRepo, cfg.JWTSecret)
+	
+authService := services.NewAuthService(userRepo, cfg.JWTSecret)
 
-	// handlers
-	authHandler := handlers.NewAuthHandler(authService)
+	
+authHandler := handlers.NewAuthHandler(authService)
 
-	// repositories
+	
 leagueRepo := repository.NewLeagueRepository(database)
 
-// services
+
 leagueService := services.NewLeagueService(leagueRepo)
 
-// handlers
+
 leagueHandler := handlers.NewLeagueHandler(leagueService)
+
+
+teamRepo := repository.NewTeamRepository(database)
+
+
+teamService := services.NewTeamService(teamRepo, leagueRepo)
+
+
+teamHandler := handlers.NewTeamHandler(teamService)
 
 	r := gin.Default()
 
@@ -41,14 +50,14 @@ leagueHandler := handlers.NewLeagueHandler(leagueService)
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 
-	// auth routes — no middleware
+	
 	auth := r.Group("/auth")
 	{
 		auth.POST("/register", authHandler.Register)
 		auth.POST("/login", authHandler.Login)
 	}
 
-	// protected routes — requires JWT
+	
 	api := r.Group("/api")
 	api.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 	{
@@ -59,10 +68,13 @@ leagueHandler := handlers.NewLeagueHandler(leagueService)
 				"username": c.MustGet("username"),
 			})
 		})
-		api.POST("/leagues", leagueHandler.CreateLeague)
+	api.POST("/leagues", leagueHandler.CreateLeague)
 	api.GET("/leagues", leagueHandler.GetLeagues)
 	api.GET("/leagues/:id", leagueHandler.GetLeagueByID)
 	api.POST("/leagues/:id/join", leagueHandler.JoinLeague)
+  api.POST("/leagues/:id/teams", teamHandler.CreateTeam)
+  api.GET("/leagues/:id/teams", teamHandler.GetTeamsByLeague)
+  api.GET("/teams/:id", teamHandler.GetTeamByID)
 	}
 
 	log.Println("Server running on port", cfg.Port)
