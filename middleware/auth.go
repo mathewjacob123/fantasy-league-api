@@ -47,7 +47,21 @@ func AuthMiddleware(jwtSecret string) gin.HandlerFunc {
 		c.Set("user_id", claims["user_id"])
 		c.Set("email", claims["email"])
 		c.Set("username", claims["username"])
+		c.Set("role",     claims["role"]) 
 
+		c.Next()
+	}
+	
+}
+
+func AdminMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		role, exists := c.Get("role")
+		if !exists || role != "admin" {
+			c.JSON(http.StatusForbidden, gin.H{"error": "admin access required"})
+			c.Abort()
+			return
+		}
 		c.Next()
 	}
 }

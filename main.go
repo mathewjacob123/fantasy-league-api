@@ -44,6 +44,15 @@ teamService := services.NewTeamService(teamRepo, leagueRepo)
 
 teamHandler := handlers.NewTeamHandler(teamService)
 
+// repositories
+playerRepo := repository.NewPlayerRepository(database)
+
+// services
+playerService := services.NewPlayerService(playerRepo, teamRepo)
+
+// handlers
+playerHandler := handlers.NewPlayerHandler(playerService)
+
 	r := gin.Default()
 
 	r.GET("/health", func(c *gin.Context) {
@@ -56,6 +65,13 @@ teamHandler := handlers.NewTeamHandler(teamService)
 		auth.POST("/register", authHandler.Register)
 		auth.POST("/login", authHandler.Login)
 	}
+
+	admin := r.Group("/api/admin")
+admin.Use(middleware.AuthMiddleware(cfg.JWTSecret))
+admin.Use(middleware.AdminMiddleware())
+{
+    admin.POST("/players", playerHandler.CreatePlayer)
+}
 
 	
 	api := r.Group("/api")
@@ -75,6 +91,12 @@ teamHandler := handlers.NewTeamHandler(teamService)
   api.POST("/leagues/:id/teams", teamHandler.CreateTeam)
   api.GET("/leagues/:id/teams", teamHandler.GetTeamsByLeague)
   api.GET("/teams/:id", teamHandler.GetTeamByID)
+
+	api.GET("/players",                              playerHandler.GetPlayers)
+    api.GET("/players/:id",                          playerHandler.GetPlayerByID)
+    api.POST("/teams/:id/players",                   playerHandler.AddPlayerToTeam)
+    api.DELETE("/teams/:id/players/:playerId",        playerHandler.RemovePlayerFromTeam)
+    api.GET("/teams/:id/players",                    playerHandler.GetTeamPlayers)
 	}
 
 	log.Println("Server running on port", cfg.Port)

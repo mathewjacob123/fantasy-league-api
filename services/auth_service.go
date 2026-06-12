@@ -91,6 +91,7 @@ func (s *AuthService) generateToken(user *models.User) (string, error) {
 		"user_id":  user.ID,
 		"email":    user.Email,
 		"username": user.Username,
+		"role":     user.Role,
 		"exp":      time.Now().Add(24 * time.Hour).Unix(),
 	}
 

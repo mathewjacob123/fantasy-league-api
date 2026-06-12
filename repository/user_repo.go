@@ -17,7 +17,7 @@ func (r *UserRepository) CreateUser(email, username, password string) (*models.U
 	query := `
 		INSERT INTO users (email, username, password)
 		VALUES ($1, $2, $3)
-		RETURNING id, email, username, created_at
+		RETURNING id, email, username, role, created_at
 	`
 
 	user := &models.User{}
@@ -26,6 +26,7 @@ func (r *UserRepository) CreateUser(email, username, password string) (*models.U
 		&user.ID,
 		&user.Email,
 		&user.Username,
+		&user.Role,
 		&user.CreatedAt,
 	)
 
@@ -38,7 +39,7 @@ func (r *UserRepository) CreateUser(email, username, password string) (*models.U
 
 func (r *UserRepository) FindByEmail(email string) (*models.User, error) {
 	query := `
-		SELECT id, email, username, password, created_at
+		SELECT id, email, username, password, role, created_at
 		FROM users
 		WHERE email = $1
 	`
@@ -50,6 +51,7 @@ func (r *UserRepository) FindByEmail(email string) (*models.User, error) {
 		&user.Email,
 		&user.Username,
 		&user.Password,
+		&user.Role,
 		&user.CreatedAt,
 	)
 
