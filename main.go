@@ -44,14 +44,22 @@ teamService := services.NewTeamService(teamRepo, leagueRepo)
 
 teamHandler := handlers.NewTeamHandler(teamService)
 
-// repositories
 playerRepo := repository.NewPlayerRepository(database)
 
-// services
+
 playerService := services.NewPlayerService(playerRepo, teamRepo)
 
-// handlers
+
 playerHandler := handlers.NewPlayerHandler(playerService)
+
+// repositories
+matchRepo := repository.NewMatchRepository(database)
+
+// services
+scoringService := services.NewScoringService(matchRepo, database)
+
+// handlers
+matchHandler := handlers.NewMatchHandler(scoringService)
 
 	r := gin.Default()
 
@@ -69,6 +77,8 @@ playerHandler := handlers.NewPlayerHandler(playerService)
 	admin := r.Group("/api/admin")
 admin.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 admin.Use(middleware.AdminMiddleware())
+admin.POST("/matches",              matchHandler.CreateMatch)
+admin.POST("/matches/:id/stats",    matchHandler.SubmitStats)
 {
     admin.POST("/players", playerHandler.CreatePlayer)
 }
@@ -97,6 +107,8 @@ admin.Use(middleware.AdminMiddleware())
     api.POST("/teams/:id/players",                   playerHandler.AddPlayerToTeam)
     api.DELETE("/teams/:id/players/:playerId",        playerHandler.RemovePlayerFromTeam)
     api.GET("/teams/:id/players",                    playerHandler.GetTeamPlayers)
+		api.GET("/matches/:id",             matchHandler.GetMatch)
+api.GET("/matches/:id/scores",      matchHandler.GetMatchScores)
 	}
 
 	log.Println("Server running on port", cfg.Port)

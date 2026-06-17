@@ -40,17 +40,18 @@ func (r *TeamRepository) CreateTeam(name string, leagueID, ownerID int) (*models
 
 func (r *TeamRepository) GetTeamsByLeague(leagueID int) ([]models.TeamResponse, error) {
 	query := `
-		SELECT 
-    t.id, t.name, t.league_id, t.owner_id,
-    t.total_points, t.created_at,
-    u.username as owner_username,
-    0 as player_count
-FROM teams t
-JOIN users u ON t.owner_id = u.id
-WHERE t.league_id = $1
-GROUP BY t.id, u.username
-ORDER BY t.total_points DESC
-	`
+    SELECT 
+        t.id, t.name, t.league_id, t.owner_id,
+        t.total_points, t.created_at,
+        u.username as owner_username,
+        COUNT(tp.id) as player_count
+    FROM teams t
+    JOIN users u ON t.owner_id = u.id
+    LEFT JOIN team_players tp ON t.id = tp.team_id
+    WHERE t.league_id = $1
+    GROUP BY t.id, u.username
+    ORDER BY t.total_points DESC
+`
 
 	rows, err := r.db.Query(query, leagueID)
 	if err != nil {
