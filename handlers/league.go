@@ -94,3 +94,18 @@ if err != nil {
     return
 }
 }
+func (h *LeagueHandler) GetLeaderboard(c *gin.Context) {
+	leagueID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid league id"})
+		return
+	}
+
+	teams, err := h.leagueService.GetLeaderboard(leagueID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": teams})
+}

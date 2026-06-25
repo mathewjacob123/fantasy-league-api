@@ -7,11 +7,15 @@ import (
 )
 
 type LeagueService struct {
-	leagueRepo *repository.LeagueRepository
+	leagueRepo   *repository.LeagueRepository
+	cacheService *CacheService
 }
 
-func NewLeagueService(leagueRepo *repository.LeagueRepository) *LeagueService {
-	return &LeagueService{leagueRepo: leagueRepo}
+func NewLeagueService(leagueRepo *repository.LeagueRepository, cacheService *CacheService) *LeagueService {
+	return &LeagueService{
+		leagueRepo:   leagueRepo,
+		cacheService: cacheService,
+	}
 }
 
 func (s *LeagueService) CreateLeague(req models.CreateLeagueRequest, ownerID int) (*models.League, error) {
@@ -83,4 +87,27 @@ func (s *LeagueService) JoinLeague(leagueID, userID int) error {
 	}
 
 	return s.leagueRepo.JoinLeague(leagueID, userID)
+}
+
+func (s *LeagueService) GetLeaderboard(leagueID int) ([]models.TeamResponse, error) {
+
+	
+	cached, err := s.cacheService.GetLeaderboard(leagueID)
+	if err != nil {
+		return nil, err
+	}
+	if cached != nil {
+		return cached, nil	
+	}
+
+	
+	teams, err := s.leagueRepo.GetLeaderboard(leagueID)
+	if err != nil {
+		return nil, err
+	}
+
+	
+	s.cacheService.SetLeaderboard(leagueID, teams)
+
+	return teams, nil
 }

@@ -148,3 +148,54 @@ func (r *LeagueRepository) IsMember(leagueID, userID int) (bool, error) {
 	err := r.db.QueryRow(query, leagueID, userID).Scan(&count)
 	return count > 0, err
 }
+
+func (r *LeagueRepository) GetLeaderboard(leagueID int) ([]models.TeamResponse, error) {
+	query := `
+		SELECT 
+			t.id, t.name, t.league_id, t.owner_id,
+			t.total_points, t.created_at,
+			u.username as owner_username,
+			COUNT(tp.id) as player_count
+		FROM teams t
+		JOIN users u ON t.owner_id = u.id
+		LEFT JOIN team_players tp ON t.id = tp.team_id
+		WHERE t.league_id = $1
+		GROUP BY t.id, u.username
+		ORDER BY t.total_points DESC
+	`
+
+	rows, err := r.db.Query(query, leagueID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	teams := []models.TeamResponse{}
+
+	for rows.Next() {
+		var team models.TeamResponse
+		err := rows.Scan(
+			&team.ID,
+			&team.Name,
+			&team.LeagueID,
+			&team.OwnerID,
+			&team.TotalPoints,
+			&team.CreatedAt,
+			&team.OwnerUsername,
+			&team.PlayerCount,
+		)
+		if err != nil {
+			return nil, err
+		}
+		teams = append(teams, team)
+	}
+
+	return teams, nil
+}
+
+func (r *LeagueRepository) GetLeagueIDByTeamID(teamID int) (int, error) {
+	query := `SELECT league_id FROM teams WHERE id = $1`
+	var leagueID int
+	err := r.db.QueryRow(query, teamID).Scan(&leagueID)
+	return leagueID, err
+}

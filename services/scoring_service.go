@@ -8,14 +8,23 @@ import (
 )
 
 type ScoringService struct {
-	matchRepo *repository.MatchRepository
-	db        *sql.DB
+	matchRepo    *repository.MatchRepository
+	leagueRepo   *repository.LeagueRepository
+	cacheService *CacheService
+	db           *sql.DB
 }
 
-func NewScoringService(matchRepo *repository.MatchRepository, db *sql.DB) *ScoringService {
+func NewScoringService(
+	matchRepo *repository.MatchRepository,
+	leagueRepo *repository.LeagueRepository,
+	cacheService *CacheService,
+	db *sql.DB,
+) *ScoringService {
 	return &ScoringService{
-		matchRepo: matchRepo,
-		db:        db,
+		matchRepo:    matchRepo,
+		leagueRepo:   leagueRepo,
+		cacheService: cacheService,
+		db:           db,
 	}
 }
 
@@ -130,6 +139,20 @@ func (s *ScoringService) SubmitMatchStats(matchID int, req models.SubmitStatsReq
 	if err != nil {
 		return err
 	}
+
+	// invalidate leaderboard cache for all affected leagues
+affectedLeagues := map[int]bool{}
+for teamID := range teamPoints {
+	team, err := s.leagueRepo.GetLeagueIDByTeamID(teamID)
+	if err == nil && team != 0 {
+		affectedLeagues[team] = true
+	}
+}
+for leagueID := range affectedLeagues {
+	s.cacheService.InvalidateLeaderboard(leagueID)
+}
+
+return tx.Commit()
 
 	// COMMIT — all operations succeeded
 	return tx.Commit()
