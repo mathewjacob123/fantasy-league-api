@@ -8,10 +8,21 @@ import (
 	"fantasy-league-api/repository"
 	"fantasy-league-api/services"
 	"log"
+	_ "fantasy-league-api/docs"
+swaggerFiles "github.com/swaggo/files"
+ginSwagger "github.com/swaggo/gin-swagger"
 
 	"github.com/gin-gonic/gin"
 )
-
+// @title           Fantasy League API
+// @version         1.0
+// @description     A fantasy sports league management API built with Go, Gin, PostgreSQL and Redis
+// @host            localhost:8080
+// @BasePath        /
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and your JWT token
 func main() {
 	// config and connections
 	cfg := config.Load()
@@ -103,5 +114,6 @@ func main() {
 	}
 
 	log.Println("Server running on port", cfg.Port)
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	r.Run(":" + cfg.Port)
 }
