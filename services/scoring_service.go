@@ -153,9 +153,6 @@ for leagueID := range affectedLeagues {
 }
 
 return tx.Commit()
-
-	// COMMIT — all operations succeeded
-	return tx.Commit()
 }
 
 func (s *ScoringService) CreateMatch(req models.CreateMatchRequest) (*models.Match, error) {

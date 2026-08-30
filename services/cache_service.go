@@ -1,10 +1,10 @@
 package services
 
 import (
-	"fmt"
 	"context"
 	"encoding/json"
 	"fantasy-league-api/models"
+	"fmt"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -23,11 +23,14 @@ func leaderboardKey(leagueID int) string {
 }
 
 func (s *CacheService) GetLeaderboard(leagueID int) ([]models.TeamResponse, error) {
-	ctx := context.Background()
+	if s.client == nil {
+		return nil, nil
+	}
 
+	ctx := context.Background()
 	data, err := s.client.Get(ctx, leaderboardKey(leagueID)).Bytes()
 	if err == redis.Nil {
-		return nil, nil	// cache miss — not an error
+		return nil, nil
 	}
 	if err != nil {
 		return nil, err
@@ -39,18 +42,24 @@ func (s *CacheService) GetLeaderboard(leagueID int) ([]models.TeamResponse, erro
 }
 
 func (s *CacheService) SetLeaderboard(leagueID int, teams []models.TeamResponse) error {
-	ctx := context.Background()
+	if s.client == nil {
+		return nil
+	}
 
+	ctx := context.Background()
 	data, err := json.Marshal(teams)
 	if err != nil {
 		return err
 	}
 
-	// cache for 5 minutes
 	return s.client.Set(ctx, leaderboardKey(leagueID), data, 5*time.Minute).Err()
 }
 
 func (s *CacheService) InvalidateLeaderboard(leagueID int) error {
+	if s.client == nil {
+		return nil
+	}
+
 	ctx := context.Background()
 	return s.client.Del(ctx, leaderboardKey(leagueID)).Err()
 }
