@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: fantasy-league-api
+    runtime: go
+    buildCommand: go build -o fantasy-league-api .
+    startCommand: ./fantasy-league-api
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: fantasy-league-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: fantasy-league-db
+          property: port
+      - key: DB_USER
+        fromDatabase:
+          name: fantasy-league-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: fantasy-league-db
+          property: password
+      - key: DB_NAME
+        fromDatabase:
+          name: fantasy-league-db
+          property: database
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PORT
+        value: "8080"
+      - key: REDIS_HOST
+        value: "localhost"
+      - key: REDIS_PORT
+        value: "6379"
+
+databases:
+  - name: fantasy-league-db
+    databaseName: fantasy_league
+    user: fantasy_user

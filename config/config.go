@@ -1,7 +1,6 @@
 package config
 
 import (
-	"log"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -20,10 +19,11 @@ type Config struct {
 }
 
 func Load() *Config {
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatal("Error loading .env file:", err)
-	}
+godotenv.Load(".env")
+	port := os.Getenv("PORT")
+    if port == "" {
+        port = "8080"
+    }
 
 	return &Config{
 		DBHost:     os.Getenv("DB_HOST"),
@@ -32,7 +32,7 @@ func Load() *Config {
 		DBPassword: os.Getenv("DB_PASSWORD"),
 		DBName:     os.Getenv("DB_NAME"),
 		JWTSecret:  os.Getenv("JWT_SECRET"),
-		Port:       os.Getenv("PORT"),
+		Port:       port,
 		RedisHost:  os.Getenv("REDIS_HOST"),
 		RedisPort:  os.Getenv("REDIS_PORT"),
 	}
