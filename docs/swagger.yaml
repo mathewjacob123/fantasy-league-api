@@ -1,0 +1,794 @@
+basePath: /
+definitions:
+  models.AddPlayerToTeamRequest:
+    properties:
+      is_captain:
+        type: boolean
+      player_id:
+        type: integer
+    required:
+    - player_id
+    type: object
+  models.AuthResponse:
+    properties:
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+    type: object
+  models.CreateLeagueRequest:
+    properties:
+      max_teams:
+        maximum: 20
+        minimum: 2
+        type: integer
+      name:
+        type: string
+    required:
+    - max_teams
+    - name
+    type: object
+  models.CreateMatchRequest:
+    properties:
+      away_team:
+        type: string
+      home_team:
+        type: string
+      match_date:
+        type: string
+      sport:
+        enum:
+        - football
+        - cricket
+        type: string
+    required:
+    - away_team
+    - home_team
+    - match_date
+    - sport
+    type: object
+  models.CreatePlayerRequest:
+    properties:
+      name:
+        type: string
+      position:
+        type: string
+      sport:
+        enum:
+        - football
+        - cricket
+        type: string
+      team_name:
+        type: string
+    required:
+    - name
+    - position
+    - sport
+    - team_name
+    type: object
+  models.CreateTeamRequest:
+    properties:
+      name:
+        maxLength: 50
+        minLength: 3
+        type: string
+    required:
+    - name
+    type: object
+  models.League:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      max_teams:
+        type: integer
+      name:
+        type: string
+      owner_id:
+        type: integer
+      status:
+        type: string
+    type: object
+  models.LeagueResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      is_member:
+        type: boolean
+      max_teams:
+        type: integer
+      member_count:
+        type: integer
+      name:
+        type: string
+      owner_id:
+        type: integer
+      status:
+        type: string
+    type: object
+  models.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  models.Match:
+    properties:
+      away_team:
+        type: string
+      created_at:
+        type: string
+      home_team:
+        type: string
+      id:
+        type: integer
+      match_date:
+        type: string
+      sport:
+        type: string
+      status:
+        type: string
+    type: object
+  models.Player:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      position:
+        type: string
+      sport:
+        type: string
+      team_name:
+        type: string
+    type: object
+  models.PlayerStats:
+    properties:
+      assists:
+        type: integer
+      catches:
+        type: integer
+      goals:
+        type: integer
+      minutes_played:
+        type: integer
+      player_id:
+        type: integer
+      red_cards:
+        type: integer
+      runs:
+        type: integer
+      wickets:
+        type: integer
+      yellow_cards:
+        type: integer
+    required:
+    - player_id
+    type: object
+  models.RegisterRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 6
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+  models.SubmitStatsRequest:
+    properties:
+      stats:
+        items:
+          $ref: '#/definitions/models.PlayerStats'
+        minItems: 1
+        type: array
+    required:
+    - stats
+    type: object
+  models.Team:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      league_id:
+        type: integer
+      name:
+        type: string
+      owner_id:
+        type: integer
+      total_points:
+        type: integer
+    type: object
+  models.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      role:
+        type: string
+      username:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: A fantasy sports league management API built with Go, Gin, PostgreSQL
+    and Redis
+  title: Fantasy League API
+  version: "1.0"
+paths:
+  /api/admin/matches:
+    post:
+      consumes:
+      - application/json
+      description: Create a new real-world match — admin only
+      parameters:
+      - description: Create match request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateMatchRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Match'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a match (admin)
+      tags:
+      - admin
+  /api/admin/matches/{id}/stats:
+    post:
+      consumes:
+      - application/json
+      description: Submit player stats for a match and trigger scoring — admin only
+      parameters:
+      - description: Match ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Stats request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.SubmitStatsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Submit match stats (admin)
+      tags:
+      - admin
+  /api/admin/players:
+    post:
+      consumes:
+      - application/json
+      description: Create a new real-world player — admin only
+      parameters:
+      - description: Create player request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreatePlayerRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Player'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a player (admin)
+      tags:
+      - admin
+  /api/leagues:
+    get:
+      description: Get all leagues with pagination
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List leagues
+      tags:
+      - leagues
+    post:
+      consumes:
+      - application/json
+      description: Create a new fantasy league
+      parameters:
+      - description: Create league request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateLeagueRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.League'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a league
+      tags:
+      - leagues
+  /api/leagues/{id}:
+    get:
+      description: Get league details by ID
+      parameters:
+      - description: League ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.LeagueResponse'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get a league
+      tags:
+      - leagues
+  /api/leagues/{id}/join:
+    post:
+      description: Join an existing league
+      parameters:
+      - description: League ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Join a league
+      tags:
+      - leagues
+  /api/leagues/{id}/teams:
+    get:
+      description: Get all teams in a specific league
+      parameters:
+      - description: League ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List teams in a league
+      tags:
+      - teams
+    post:
+      consumes:
+      - application/json
+      description: Create a fantasy team in a league
+      parameters:
+      - description: League ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Create team request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateTeamRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Team'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a team
+      tags:
+      - teams
+  /api/matches/{id}:
+    get:
+      description: Get match details by ID
+      parameters:
+      - description: Match ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Match'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get a match
+      tags:
+      - matches
+  /api/matches/{id}/scores:
+    get:
+      description: Get fantasy points scored by each team in a match
+      parameters:
+      - description: Match ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get match scores
+      tags:
+      - matches
+  /api/players:
+    get:
+      description: Get all players with optional filters
+      parameters:
+      - description: Filter by sport (football/cricket)
+        in: query
+        name: sport
+        type: string
+      - description: Filter by position
+        in: query
+        name: position
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List players
+      tags:
+      - players
+  /api/players/{id}:
+    get:
+      description: Get player details by ID
+      parameters:
+      - description: Player ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Player'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get a player
+      tags:
+      - players
+  /api/teams/{id}:
+    get:
+      description: Get team details by ID
+      parameters:
+      - description: Team ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Team'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get a team
+      tags:
+      - teams
+  /api/teams/{id}/players:
+    get:
+      description: Get all players in a fantasy team
+      parameters:
+      - description: Team ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get team roster
+      tags:
+      - players
+    post:
+      consumes:
+      - application/json
+      description: Add a real-world player to your fantasy team
+      parameters:
+      - description: Team ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Add player request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.AddPlayerToTeamRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Add player to team
+      tags:
+      - players
+  /api/teams/{id}/players/{playerId}:
+    delete:
+      description: Remove a player from your fantasy team
+      parameters:
+      - description: Team ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Player ID
+        in: path
+        name: playerId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Remove player from team
+      tags:
+      - players
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login with email and password
+      parameters:
+      - description: Login request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.AuthResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account
+      parameters:
+      - description: Register request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register a new user
+      tags:
+      - auth
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and your JWT token
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

@@ -29,11 +29,6 @@ Thumbs.db
 *.out
 coverage.html
 
-# Swagger generated files (auto-generated, don't need versioning)
-docs/docs.go
-docs/swagger.json
-docs/swagger.yaml
-
 # Air live reload config (you'll use this later)
 .air.toml
 tmp/
