@@ -195,3 +195,7 @@ go test ./... -v
 - Solved an N+1 query problem in the leagues list endpoint — reduced 201 queries to 1 using SQL JOINs
 - Implemented Redis caching for the leaderboard with automatic cache invalidation on score updates
 - Wrote 13 unit tests for the scoring engine using Go's table-driven test pattern
+
+## Live Demo
+API Base URL: https://fantasy-league-api-6dpo.onrender.com
+Swagger Docs: https://fantasy-league-api-6dpo.onrender.com/swagger/index.html
